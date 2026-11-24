@@ -1,4 +1,4 @@
-.PHONY: init up dev down logs ps migrate seed check test test-backend test-frontend simulate simulate-bg simulate-stop simulate-logs
+.PHONY: init up dev down logs ps migrate seed check test test-backend test-frontend simulate simulate-bg simulate-stop simulate-logs bench bench-tabs local-ca metrics
 SIM_ARGS ?=
 init:
 	python scripts/init_env.py
@@ -20,8 +20,8 @@ seed:
 	docker compose exec api python -m src.seed
 check:
 	uv run --project backend ruff check backend
-	uv run --project backend ruff check simulate.py
-	uv run --project backend ruff format --check backend
+	uv run --project backend ruff check simulate.py scripts/benchmark.py
+	uv run --project backend ruff format --check backend scripts/benchmark.py
 	cd frontend && npm run typecheck
 	cd frontend && npm run format:check
 
@@ -44,3 +44,17 @@ simulate-stop:
 
 simulate-logs:
 	tail -f .artifacts/simulator.log
+
+BENCH_ARGS ?=
+bench:
+	uv run scripts/benchmark.py $(BENCH_ARGS)
+
+bench-tabs:
+	cd frontend && npm run bench:tabs -- $(BENCH_ARGS)
+
+local-ca:
+	mkdir -p .artifacts
+	docker compose exec -T caddy cat /data/caddy/pki/authorities/local/root.crt > .artifacts/caddy-root.crt
+
+metrics:
+	docker compose exec -T api python -c 'import urllib.request; print(urllib.request.urlopen("http://localhost:8000/internal/metrics").read().decode())'
