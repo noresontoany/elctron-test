@@ -317,3 +317,51 @@ async def test_verified_session_scope(client):
     # A valid shared cookie must not rescue an invalid tab token.
     denied = await client.get("/api/session", headers={"Authorization": "Bearer invalid"})
     assert denied.status_code == 401
+
+
+async def test_real_disconnect_through_caddy_cancels_upstream(client):
+    """Exercise the full Caddy + ASGI path, not only the proxy's mocked request."""
+    code = """import urllib.request
+metrics = urllib.request.urlopen("http://localhost:8000/internal/metrics").read().decode()
+print(next(line.split()[1] for line in metrics.splitlines()
+           if line.startswith("spoke_sync_cancelled_total ")))
+"""
+
+    async def cancellations():
+        process = await asyncio.create_subprocess_exec(
+            "docker",
+            "compose",
+            "exec",
+            "-T",
+            "api",
+            "python",
+            "-c",
+            code,
+            cwd=Path(__file__).resolve().parents[2],
+            stdout=asyncio.subprocess.PIPE,
+        )
+        output, _ = await process.communicate()
+        assert process.returncode == 0
+        return float(output)
+
+    params = {"offset": "-1"}
+    for _ in range(8):
+        task = asyncio.create_task(client.get("/api/sync/users", params=params))
+        done, _ = await asyncio.wait([task], timeout=0.4)
+        if not done:
+            before = await cancellations()
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            for _ in range(10):
+                if await cancellations() > before:
+                    return
+                await asyncio.sleep(0.1)
+            pytest.fail("Disconnected poll did not cancel its upstream request")
+        response = task.result()
+        assert response.status_code in (200, 204)
+        params = {
+            "offset": response.headers["electric-offset"],
+            "handle": response.headers["electric-handle"],
+            "live": "true",
+        }
+    pytest.fail("Could not reach a pending long poll")

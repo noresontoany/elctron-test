@@ -40,6 +40,6 @@
 
 SharedWorker не заменяет HTTP/2: два пользователя могут держать восемь долгих запросов. Локально HTTPS работает на **https://localhost:8447**, старый HTTP — на 8097. Caddy соседних проектов не затрагивается. Для браузера нужно доверие к локальному сертификату, см. [инструкцию стенда](load-testing.md).
 
-Убрано `flush_interval -1`: в Caddy оно отключает отмену upstream-запроса при отключении клиента. Для buffered long polling это оставляло лишние запросы до таймаута. Proxy теперь также отменяет httpx-запрос при отключении клиента и освобождает свой слот в `finally`.
+Убрано `flush_interval -1`: в Caddy оно отключает отмену upstream-запроса при отключении клиента. Для buffered long polling это оставляло лишние запросы до таймаута. Proxy теперь также отменяет httpx-запрос при отключении клиента и освобождает свой слот в `finally`. Проверка Origin и метрики реализованы чистым ASGI middleware: вариант на `BaseHTTPMiddleware` скрывал `http.disconnect` от обработчика. Это проверяется отдельным интеграционным тестом через настоящий Caddy, а не только подставным Request.
 
 Источники: [TanStack — subscribeChanges](https://tanstack.com/db/latest/docs/reference/interfaces/Collection), [Electric collection](https://tanstack.com/db/latest/docs/collections/electric-collection), [Caddy — reverse_proxy / flush_interval](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy), [HTTP/2 — SETTINGS_MAX_CONCURRENT_STREAMS](https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.2).
