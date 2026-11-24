@@ -1,14 +1,22 @@
-from fastapi import APIRouter, HTTPException, Response
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 
 from src.containers.session.requests.demo_session_request import DemoSessionRequest
 from src.containers.team.repositories.directory_repository import DirectoryRepository
 from src.containers.team.resources.directory_resource import UserResource
-from src.ship.auth import COOKIE, signer
+from src.ship.auth import COOKIE, Actor, get_actor, signer
 from src.ship.database import session_factory
 from src.ship.demo_ids import demo_id
 
 router = APIRouter(tags=["Demo session"])
+
+
+@router.get("/session")
+async def current_session(actor: Annotated[Actor, Depends(get_actor)]):
+    """Server-verified sharing scope; never trust a tab-provided user ID."""
+    return {"workspace": actor.workspace.value, "user_id": str(actor.user_id), "role": actor.role}
 
 
 class SessionResource(BaseModel):

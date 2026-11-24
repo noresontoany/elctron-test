@@ -6,6 +6,7 @@ root = Path(__file__).resolve().parents[1]
 path = root / ".env"
 if not path.exists():
     content = (root / ".env.example").read_text()
+    content = content.replace("replace-with-random-postgres-secret", secrets.token_hex(24))
     content = content.replace("replace-with-random-local-secret", secrets.token_hex(32))
     content = content.replace("replace-with-random-electric-secret", secrets.token_hex(32))
     path.write_text(content)

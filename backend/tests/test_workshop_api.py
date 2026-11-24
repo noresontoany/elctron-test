@@ -307,3 +307,13 @@ async def test_related_shapes_tenant_boundary_and_rename_version(client):
             f"/api/users/{user['id']}", json={"name": user["name"], "version": version + 1}
         )
         assert restored.status_code == 200
+
+
+async def test_verified_session_scope(client):
+    response = await client.get("/api/session")
+    assert response.status_code == 200
+    assert response.json()["workspace"] == "lab"
+    assert response.json()["role"] == "manager"
+    # A valid shared cookie must not rescue an invalid tab token.
+    denied = await client.get("/api/session", headers={"Authorization": "Bearer invalid"})
+    assert denied.status_code == 401

@@ -1,14 +1,22 @@
 {
-    auto_https off
-    admin off
+  admin off
+  auto_https disable_redirects
 }
-:80 {
-    handle /api/* {
-        reverse_proxy api:8000 {
-            flush_interval -1
-        }
-    }
-    handle {
-        reverse_proxy frontend:3000
-    }
+
+(app) {
+  handle /api/* {
+    reverse_proxy api:8000
+  }
+  handle {
+    reverse_proxy frontend:3000
+  }
+}
+
+http://:80 {
+  import app
+}
+
+https://localhost, https://127.0.0.1 {
+  tls internal
+  import app
 }

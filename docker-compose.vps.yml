@@ -1,0 +1,13 @@
+# Standalone VPS with free 80/443. Existing reverse proxy: see docs/load-testing.md.
+services:
+  caddy:
+    ports: !override
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN to your VPS DNS name}
+    volumes: !override
+      - ./docker/caddy/Caddyfile.vps:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
