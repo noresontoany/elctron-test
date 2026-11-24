@@ -29,7 +29,7 @@ import { ArrowDown, ArrowRight, Database, Workflow, ShieldCheck, Code2 } from '@
         </div>
       </div>
       <div class="diagram-branches">
-        <span>↑ поток изменений</span><span>↓ команды + txid ↑</span>
+        <span>↑ SharedWorker · изменения</span><span>↓ команды + txid ↑</span>
       </div>
       <div class="diagram-pair">
         <div class="diagram-node">
@@ -64,7 +64,7 @@ import { ArrowDown, ArrowRight, Database, Workflow, ShieldCheck, Code2 } from '@
           <strong>Переведите заказ в работу</strong>
           <p>
             Карточка сразу переместится в TanStack DB. API проверит данные, сохранит их и вернёт
-            txid. Клиент дождётся этого txid в потоке.
+            txid. Worker дождётся этого txid в потоке и подтвердит запись вкладке.
           </p>
         </li>
         <li>
@@ -101,8 +101,8 @@ import { ArrowDown, ArrowRight, Database, Workflow, ShieldCheck, Code2 } from '@
     <article>
       <h3>Изолированное окружение</h3>
       <p>
-        Свой Docker Compose, сеть и volumes. Только Caddy публикует localhost:8097. PostgreSQL и
-        Electric снаружи недоступны. Сессия демонстрационная — без пароля.
+        Свой Docker Compose, сеть и volumes. Caddy публикует HTTPS на localhost:8447 и HTTP на 8097.
+        PostgreSQL и Electric снаружи недоступны. Сессия демонстрационная — без пароля.
       </p>
       <a href="/api/docs" target="_blank" rel="noreferrer"
         >Открыть Swagger<ArrowRight :size="14"

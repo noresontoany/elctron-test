@@ -1,4 +1,5 @@
 import { shallowRef } from 'vue'
+import { syncDiagnostics } from '@/shared/sync'
 import { api } from '@/shared/api/client'
 
 interface DemoUser {
@@ -32,6 +33,7 @@ export async function connectSession() {
   })
   sessionStorage.setItem('spoke.token', session.token)
   currentSession.value = session
+  Object.assign(window, { spokeSync: syncDiagnostics })
 }
 export function switchUser(userId: string) {
   sessionStorage.setItem('spoke.user', userId)

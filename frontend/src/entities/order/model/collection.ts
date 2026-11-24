@@ -1,7 +1,6 @@
 import { createCollection } from '@tanstack/vue-db'
-import { electricCollectionOptions } from '@tanstack/electric-db-collection'
+import { sharedElectricOptions } from '@/shared/sync'
 import { shallowRef } from 'vue'
-import { authenticatedFetch } from '@/shared/api/auth'
 import { orderDtoSchema } from '../api/order.dto'
 import { orderApi } from '../api/order.api'
 import { orderMapper } from '../api/order.mapper'
@@ -12,37 +11,15 @@ export const lastTxid = shallowRef<number | null>(null)
 
 export function createOrdersCollection() {
   return createCollection(
-    electricCollectionOptions({
+    sharedElectricOptions({
       id: 'workshop-orders',
       schema: orderDtoSchema,
       getKey: (row) => row.id,
       syncMode: 'eager',
-      shapeOptions: {
-        url: new URL('/api/sync/orders', window.location.origin).href,
-        fetchClient: async (input, init) => {
-          try {
-            const response = await authenticatedFetch(input, init)
-            if (response.ok) {
-              syncConnected.value = true
-              syncError.value = null
-            } else if (response.status !== 409) {
-              syncConnected.value = false
-              syncError.value = 'Синхронизация временно недоступна'
-            }
-            return response
-          } catch (error) {
-            if (!(error instanceof DOMException && error.name === 'AbortError')) {
-              syncConnected.value = false
-              syncError.value = 'Связь потеряна. Повторяем подключение…'
-            }
-            throw error
-          }
-        },
-        onError: () => {
-          syncConnected.value = false
-          syncError.value = 'Связь потеряна. Повторяем подключение…'
-          return {}
-        },
+      resource: 'orders',
+      onHealth: (connected, error) => {
+        syncConnected.value = connected
+        syncError.value = connected ? null : (error ?? 'Связь потеряна. Повторяем подключение…')
       },
       onInsert: async ({ transaction, collection }) => {
         for (const mutation of transaction.mutations) {

@@ -1,39 +1,34 @@
 import { createCollection } from '@tanstack/vue-db'
-import { electricCollectionOptions } from '@tanstack/electric-db-collection'
-import { authenticatedFetch } from '@/shared/api/auth'
+import { sharedElectricOptions } from '@/shared/sync'
 import { userSchema, teamSchema, memberSchema } from '../api/directory.dto'
 
-const shape = (resource: string) => ({
-  url: new URL(`/api/sync/${resource}`, window.location.origin).href,
-  fetchClient: authenticatedFetch,
-})
 function createDirectory() {
   return {
     users: createCollection(
-      electricCollectionOptions({
+      sharedElectricOptions({
         id: 'users',
         schema: userSchema,
         getKey: (row) => row.id,
         syncMode: 'eager',
-        shapeOptions: shape('users'),
+        resource: 'users',
       }),
     ),
     teams: createCollection(
-      electricCollectionOptions({
+      sharedElectricOptions({
         id: 'teams',
         schema: teamSchema,
         getKey: (row) => row.id,
         syncMode: 'eager',
-        shapeOptions: shape('teams'),
+        resource: 'teams',
       }),
     ),
     members: createCollection(
-      electricCollectionOptions({
+      sharedElectricOptions({
         id: 'team-members',
         schema: memberSchema,
         getKey: (row) => row.id,
         syncMode: 'eager',
-        shapeOptions: shape('team_members'),
+        resource: 'team_members',
       }),
     ),
   }

@@ -6,15 +6,17 @@
     "dev": "nuxt dev --host 0.0.0.0",
     "build": "nuxt build",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck",
+    "typecheck": "nuxt typecheck && tsc -p tsconfig.worker.json",
     "test:e2e": "playwright test",
     "test:unit": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "bench:tabs": "node scripts/benchmark-tabs.mjs"
   },
   "dependencies": {
     "@lucide/vue": "^1.79.0",
     "@tailwindcss/vite": "^4.1.0",
+    "@tanstack/db": "1.0.0-rc.1.5",
     "@tanstack/electric-db-collection": "1.0.0-rc.1.5",
     "@tanstack/vue-db": "1.0.0-rc.1.5",
     "@vueuse/core": "^15.1.0",
